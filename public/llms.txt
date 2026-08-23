@@ -1,0 +1,8 @@
+# Blueberrys Café
+> A floral garden restaurant & café in Bhubaneswar offering specialty coffees, continental cuisine, and magical ambient dining.
+
+## Key Sections
+- Menu: /#menu
+- Experience & Atmosphere: /#experience
+- Location & Hours: /#location
+- Reservations: /#reserve
