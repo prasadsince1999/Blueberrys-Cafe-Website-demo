@@ -44,9 +44,19 @@ const CornerBranch = ({ className, delay = 0, style }: { className?: string, del
   </motion.svg>
 );
 
-export function Preloader() {
+interface PreloaderProps {
+  onComplete?: () => void;
+}
+
+export function Preloader({ onComplete }: PreloaderProps) {
   const [isLoading, setIsLoading] = useState(true);
   const lenis = useLenis();
+
+  const handleFinish = () => {
+    setIsLoading(false);
+    onComplete?.();
+    window.dispatchEvent(new CustomEvent('welcome-complete'));
+  };
 
   useEffect(() => {
     // Lock scrolling while the preloader is active
@@ -63,8 +73,8 @@ export function Preloader() {
     // Lock body scroll as a fallback
     document.body.style.overflow = isLoading ? 'hidden' : 'auto';
 
-    // Ensure we show the preloader for at least 2.5 seconds for the cinematic effect
-    const minTime = new Promise(resolve => setTimeout(resolve, 2500));
+    // Ensure we show the preloader for 2.2 seconds for the cinematic effect
+    const minTime = new Promise(resolve => setTimeout(resolve, 2200));
     
     // Check if document is fully loaded
     const checkLoad = new Promise(resolve => {
@@ -77,22 +87,23 @@ export function Preloader() {
 
     // Wait for both the minimum time and the page to fully load
     Promise.all([minTime, checkLoad]).then(() => {
-      setIsLoading(false);
+      handleFinish();
     });
 
     return () => {
       document.body.style.overflow = 'auto';
     };
-  }, [isLoading]);
+  }, []);
 
   return (
-    <AnimatePresence>
+    <AnimatePresence onExitComplete={() => window.dispatchEvent(new CustomEvent('welcome-complete'))}>
       {isLoading && (
         <motion.div
-          className="fixed inset-0 z-[10000] bg-cafe-cream flex flex-col items-center justify-center overflow-hidden"
+          onClick={handleFinish}
+          className="fixed inset-0 z-[10000] bg-cafe-cream flex flex-col items-center justify-center overflow-hidden cursor-pointer"
           initial={{ opacity: 1 }}
           exit={{ y: "-100%", opacity: 1 }}
-          transition={{ duration: 1.2, ease: [0.76, 0, 0.24, 1] }}
+          transition={{ duration: 1.1, ease: [0.76, 0, 0.24, 1] }}
         >
           {/* Subtle background texture */}
           <div className="absolute inset-0 opacity-[0.05] mix-blend-multiply bg-[url('https://www.transparenttextures.com/patterns/cream-paper.png')]" />

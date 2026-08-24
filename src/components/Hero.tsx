@@ -70,33 +70,30 @@ export function Hero() {
     }
   };
 
-  // Attempt unmuted playback on load & register one-time interaction listeners
+  // Start audio immediately when the welcome/preloader screen finishes
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
 
-    video.volume = 0.55;
+    // Start video playback muted while welcome screen is up
+    video.volume = 0;
+    video.muted = true;
+    video.play().catch(() => {});
 
-    // Try unmuted autoplay directly
-    video.muted = false;
-    const playPromise = video.play();
-    if (playPromise !== undefined) {
-      playPromise
-        .then(() => {
-          setIsPlayingSound(true);
-        })
-        .catch(() => {
-          // Autoplay blocked by browser policy: start muted and unlock on first touch/click
-          video.muted = true;
-          setIsPlayingSound(false);
-          video.play().catch(() => {});
-        });
-    }
+    // When welcome screen disappears, directly fade in the unmuted audio
+    const startAudioOnWelcomeComplete = () => {
+      const currentScroll = window.scrollY || document.documentElement.scrollTop || 0;
+      if (userWantsAudioRef.current && currentScroll < 140) {
+        setAudioState(true, true);
+      }
+    };
 
-    // Global listener to unlock audio on first interaction
+    window.addEventListener('welcome-complete', startAudioOnWelcomeComplete);
+
+    // Also fallback if user taps anywhere
     const unlockOnFirstTouch = () => {
       const currentScroll = window.scrollY || document.documentElement.scrollTop || 0;
-      if (userWantsAudioRef.current && currentScroll < 100) {
+      if (userWantsAudioRef.current && currentScroll < 140) {
         setAudioState(true, true);
       }
       removeUnlockListeners();
@@ -115,6 +112,7 @@ export function Hero() {
     window.addEventListener('keydown', unlockOnFirstTouch, { passive: true });
 
     return () => {
+      window.removeEventListener('welcome-complete', startAudioOnWelcomeComplete);
       removeUnlockListeners();
       if (fadeIntervalRef.current) clearInterval(fadeIntervalRef.current);
     };

@@ -1,0 +1,41 @@
+/*
+  X-Content-Type-Options: nosniff
+
+/
+  Content-Type: text/html; charset=utf-8
+
+/index.html
+  Content-Type: text/html; charset=utf-8
+
+/*.html
+  Content-Type: text/html; charset=utf-8
+
+/assets/*.js
+  Content-Type: application/javascript; charset=utf-8
+
+/assets/*.css
+  Content-Type: text/css; charset=utf-8
+
+/*.svg
+  Content-Type: image/svg+xml
+
+/*.png
+  Content-Type: image/png
+
+/*.webp
+  Content-Type: image/webp
+
+/*.avif
+  Content-Type: image/avif
+
+/*.mp4
+  Content-Type: video/mp4
+
+/*.webm
+  Content-Type: video/webm
+
+/robots.txt
+  Content-Type: text/plain; charset=utf-8
+
+/llms.txt
+  Content-Type: text/plain; charset=utf-8
