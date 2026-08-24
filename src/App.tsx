@@ -21,9 +21,9 @@ import { Preloader } from './components/Preloader';
 
 export default function App() {
   return (
-    <ReactLenis root>
+    <ReactLenis root options={{ syncTouch: false, touchMultiplier: 1, duration: 1.2 }}>
       <TransitionProvider>
-        <div className="bg-cafe-ivory min-h-screen text-cafe-text font-sans">
+        <div className="bg-cafe-ivory min-h-screen text-cafe-text font-sans selection:bg-cafe-teal selection:text-white">
           
           <Preloader />
           <CustomCursor />

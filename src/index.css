@@ -22,10 +22,15 @@
     font-family: var(--font-sans);
     color: var(--color-cafe-text);
     background-color: var(--color-cafe-ivory);
+    overflow-x: hidden;
+    touch-action: manipulation;
+    -webkit-overflow-scrolling: touch;
   }
 
   body {
     @apply m-0 p-0 overflow-x-hidden;
+    touch-action: pan-y pinch-zoom;
+    -webkit-overflow-scrolling: touch;
   }
   
   h1, h2, h3, h4, h5, h6 {
@@ -66,10 +71,7 @@ html.lenis, html.lenis body {
   overscroll-behavior: contain;
 }
 
-.lenis.lenis-stopped {
-  overflow: hidden;
-}
-
 .lenis.lenis-scrolling iframe {
   pointer-events: none;
 }
+

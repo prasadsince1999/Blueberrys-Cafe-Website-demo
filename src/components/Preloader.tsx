@@ -50,7 +50,6 @@ interface PreloaderProps {
 
 export function Preloader({ onComplete }: PreloaderProps) {
   const [isLoading, setIsLoading] = useState(true);
-  const lenis = useLenis();
 
   const handleFinish = () => {
     setIsLoading(false);
@@ -59,20 +58,6 @@ export function Preloader({ onComplete }: PreloaderProps) {
   };
 
   useEffect(() => {
-    // Lock scrolling while the preloader is active
-    if (lenis) {
-      if (isLoading) {
-        lenis.stop();
-      } else {
-        lenis.start();
-      }
-    }
-  }, [lenis, isLoading]);
-
-  useEffect(() => {
-    // Lock body scroll as a fallback
-    document.body.style.overflow = isLoading ? 'hidden' : 'auto';
-
     // Ensure we show the preloader for 2.2 seconds for the cinematic effect
     const minTime = new Promise(resolve => setTimeout(resolve, 2200));
     
@@ -89,10 +74,6 @@ export function Preloader({ onComplete }: PreloaderProps) {
     Promise.all([minTime, checkLoad]).then(() => {
       handleFinish();
     });
-
-    return () => {
-      document.body.style.overflow = 'auto';
-    };
   }, []);
 
   return (
