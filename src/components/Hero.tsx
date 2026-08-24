@@ -75,76 +75,100 @@ export function Hero() {
     const video = videoRef.current;
     if (!video) return;
 
-    // Start video playback muted while welcome screen is up
+    // Start video playback muted while welcome screen is active
     video.volume = 0;
     video.muted = true;
     video.play().catch(() => {});
 
     // When welcome screen disappears, directly fade in the unmuted audio
-    const startAudioOnWelcomeComplete = () => {
+    const unlockAudio = () => {
       const currentScroll = window.scrollY || document.documentElement.scrollTop || 0;
-      if (userWantsAudioRef.current && currentScroll < 140) {
+      const vh = window.innerHeight || 800;
+      if (userWantsAudioRef.current && currentScroll < vh * 0.70) {
         setAudioState(true, true);
       }
     };
 
-    window.addEventListener('welcome-complete', startAudioOnWelcomeComplete);
+    window.addEventListener('welcome-complete', unlockAudio);
 
-    // Also fallback if user taps anywhere
-    const unlockOnFirstTouch = () => {
-      const currentScroll = window.scrollY || document.documentElement.scrollTop || 0;
-      if (userWantsAudioRef.current && currentScroll < 140) {
-        setAudioState(true, true);
-      }
-      removeUnlockListeners();
+    // Global listener to unlock audio on first touch, swipe, or click on mobile & desktop
+    const handleFirstGesture = () => {
+      unlockAudio();
+      removeGestureListeners();
     };
 
-    const removeUnlockListeners = () => {
-      window.removeEventListener('pointerdown', unlockOnFirstTouch);
-      window.removeEventListener('touchstart', unlockOnFirstTouch);
-      window.removeEventListener('click', unlockOnFirstTouch);
-      window.removeEventListener('keydown', unlockOnFirstTouch);
+    const removeGestureListeners = () => {
+      window.removeEventListener('pointerdown', handleFirstGesture);
+      window.removeEventListener('touchstart', handleFirstGesture);
+      window.removeEventListener('touchmove', handleFirstGesture);
+      window.removeEventListener('click', handleFirstGesture);
+      window.removeEventListener('keydown', handleFirstGesture);
+      window.removeEventListener('wheel', handleFirstGesture);
     };
 
-    window.addEventListener('pointerdown', unlockOnFirstTouch, { passive: true });
-    window.addEventListener('touchstart', unlockOnFirstTouch, { passive: true });
-    window.addEventListener('click', unlockOnFirstTouch, { passive: true });
-    window.addEventListener('keydown', unlockOnFirstTouch, { passive: true });
+    window.addEventListener('pointerdown', handleFirstGesture, { passive: true });
+    window.addEventListener('touchstart', handleFirstGesture, { passive: true });
+    window.addEventListener('touchmove', handleFirstGesture, { passive: true });
+    window.addEventListener('click', handleFirstGesture, { passive: true });
+    window.addEventListener('keydown', handleFirstGesture, { passive: true });
+    window.addEventListener('wheel', handleFirstGesture, { passive: true });
 
     return () => {
-      window.removeEventListener('welcome-complete', startAudioOnWelcomeComplete);
-      removeUnlockListeners();
+      window.removeEventListener('welcome-complete', unlockAudio);
+      removeGestureListeners();
       if (fadeIntervalRef.current) clearInterval(fadeIntervalRef.current);
     };
   }, []);
 
-  // Smooth scroll listener with hysteresis (fade out at >140px, fade in at <70px)
-  useLenis(({ scroll }) => {
+  // Universal scroll handler for both desktop (Lenis) and mobile touch (Native)
+  const handleScrollUpdate = (scrollY: number) => {
     const video = videoRef.current;
     if (!video) return;
 
+    const vh = window.innerHeight || 800;
+    // Deep thresholds: Mute ONLY after scrolling 70% of viewport height (well into next section)
+    const muteThreshold = Math.max(vh * 0.70, 500);
+    const unmuteThreshold = Math.max(vh * 0.45, 300);
+    const pauseThreshold = vh * 1.5;
+
     // Scroll Down Threshold
-    if (scroll > 140 && !isScrolledOutRef.current) {
+    if (scrollY > muteThreshold && !isScrolledOutRef.current) {
       isScrolledOutRef.current = true;
       if (userWantsAudioRef.current) {
         setAudioState(false, true);
       }
     } 
     // Scroll Back to Top Threshold
-    else if (scroll < 70 && isScrolledOutRef.current) {
+    else if (scrollY < unmuteThreshold && isScrolledOutRef.current) {
       isScrolledOutRef.current = false;
       if (userWantsAudioRef.current) {
         setAudioState(true, true);
       }
     }
 
-    // Pause video when completely offscreen to preserve battery/GPU
-    if (scroll > window.innerHeight * 1.1) {
+    // Pause video when deeply offscreen to preserve battery/GPU
+    if (scrollY > pauseThreshold) {
       if (!video.paused) video.pause();
     } else {
       if (video.paused) video.play().catch(() => {});
     }
+  };
+
+  // Lenis scroll listener
+  useLenis(({ scroll }) => {
+    handleScrollUpdate(scroll);
   });
+
+  // Native window scroll listener fallback (vital for mobile touch scrolling)
+  useEffect(() => {
+    const onWindowScroll = () => {
+      const scrollY = window.scrollY || document.documentElement.scrollTop || 0;
+      handleScrollUpdate(scrollY);
+    };
+
+    window.addEventListener('scroll', onWindowScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onWindowScroll);
+  }, []);
 
   const toggleSound = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -168,6 +192,19 @@ export function Hero() {
   
   const textY = useTransform(scrollYProgress, [0, 1], [0, 150]);
   const textOpacity = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
+
+  // Reverted & enhanced dynamic glass arch frosting on scroll
+  const archBlur = useTransform(scrollYProgress, [0, 0.45], ["blur(0px)", "blur(24px)"]);
+  const archBg = useTransform(
+    scrollYProgress, 
+    [0, 0.45], 
+    ["rgba(255, 255, 255, 0.30)", "rgba(255, 255, 255, 0.88)"]
+  );
+  const archBorder = useTransform(
+    scrollYProgress,
+    [0, 0.45],
+    ["rgba(255, 255, 255, 0.40)", "rgba(255, 255, 255, 0.85)"]
+  );
 
   return (
     <section ref={containerRef} className="relative h-screen min-h-[700px] flex items-end justify-center overflow-hidden bg-cafe-ivory">
@@ -197,13 +234,17 @@ export function Hero() {
         <div className="absolute inset-0 bg-gradient-to-b from-cafe-ivory/50 via-transparent to-black/10" />
       </motion.div>
 
-      {/* Main Content Area: Slimmer Architectural Glass Arch with Upper Negative Space */}
+      {/* Main Content Area: Dynamic Glass Arch with progressive scroll blur */}
       <motion.div 
-        className="relative z-20 text-center px-6 sm:px-10 md:px-12 pt-24 sm:pt-32 md:pt-40 lg:pt-44 pb-6 md:pb-8 w-[88vw] max-w-md sm:max-w-lg md:max-w-xl lg:max-w-[580px] mx-auto bg-white/85 backdrop-blur-md rounded-t-[160px] sm:rounded-t-[200px] md:rounded-t-[260px] rounded-b-none shadow-[0_-15px_50px_rgba(0,0,0,0.1)] border-t border-x border-white/80 flex flex-col justify-end"
+        className="relative z-20 text-center px-6 sm:px-10 md:px-12 pt-24 sm:pt-32 md:pt-40 lg:pt-44 pb-6 md:pb-8 w-[88vw] max-w-md sm:max-w-lg md:max-w-xl lg:max-w-[580px] mx-auto rounded-t-[160px] sm:rounded-t-[200px] md:rounded-t-[260px] rounded-b-none shadow-[0_-15px_50px_rgba(0,0,0,0.1)] border-t border-x flex flex-col justify-end"
         style={{ 
           opacity: textOpacity, 
           y: textY,
-          willChange: 'transform, opacity'
+          backdropFilter: archBlur,
+          WebkitBackdropFilter: archBlur,
+          backgroundColor: archBg,
+          borderColor: archBorder,
+          willChange: 'transform, opacity, backdrop-filter'
         }}
       >
         <motion.div
