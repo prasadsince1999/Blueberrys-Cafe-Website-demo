@@ -201,13 +201,16 @@ export function Hero() {
     }
   };
 
+  const { scrollY } = useScroll();
+
   // Deep cinematic fly-through effect
-  const bgScale = useTransform(scrollYProgress, [0, 1], [1, 1.25]);
-  const bgOpacity = useTransform(scrollYProgress, [0, 1], [1, 0.35]);
+  const bgScale = useTransform(scrollY, [0, 600], [1, 1.25]);
+  const bgOpacity = useTransform(scrollY, [0, 600], [1, 0.35]);
   
-  // Solid & crisp at beginning (scroll 0), slowly gets transparent on scroll down (0 -> 0.45)
-  const textY = useTransform(scrollYProgress, [0, 0.5], [0, 80]);
-  const textOpacity = useTransform(scrollYProgress, [0, 0.45], [1, 0]);
+  // Solid & crisp at top (0px), smoothly and progressively fades out to transparent on scroll (0px -> 260px)
+  const textOpacity = useTransform(scrollY, [0, 260], [1, 0]);
+  const textY = useTransform(scrollY, [0, 260], [0, 80]);
+  const textScale = useTransform(scrollY, [0, 260], [1, 0.96]);
 
   return (
     <section ref={containerRef} className="relative h-screen min-h-[700px] flex items-end justify-center overflow-hidden bg-cafe-ivory">
@@ -237,12 +240,13 @@ export function Hero() {
         <div className="absolute inset-0 bg-gradient-to-b from-cafe-ivory/40 via-transparent to-black/10" />
       </motion.div>
 
-      {/* Main Content Area: Architectural Solid Arch at start, slowly fades to transparent as user scrolls */}
+      {/* Main Content Area: Architectural Solid Arch at start, smoothly fades out to transparent as user scrolls */}
       <motion.div 
-        className="relative z-20 text-center px-6 sm:px-10 md:px-12 pt-20 sm:pt-28 md:pt-36 lg:pt-40 pb-6 md:pb-8 w-[88vw] max-w-md sm:max-w-lg md:max-w-xl lg:max-w-[580px] mx-auto bg-white/95 backdrop-blur-xl rounded-t-[160px] sm:rounded-t-[200px] md:rounded-t-[260px] rounded-b-none shadow-[0_-15px_50px_rgba(0,0,0,0.12)] border-t border-x border-white/90 flex flex-col justify-end"
+        className="relative z-20 text-center px-6 sm:px-10 md:px-12 pt-20 sm:pt-28 md:pt-36 lg:pt-40 pb-6 md:pb-8 w-[88vw] max-w-md sm:max-w-lg md:max-w-xl lg:max-w-[580px] mx-auto bg-white/95 backdrop-blur-xl rounded-t-[160px] sm:rounded-t-[200px] md:rounded-t-[260px] rounded-b-none shadow-[0_-15px_50px_rgba(0,0,0,0.12)] border-t border-x border-white/90 flex flex-col justify-end pointer-events-auto"
         style={{ 
           opacity: textOpacity, 
           y: textY,
+          scale: textScale,
           willChange: 'transform, opacity'
         }}
       >
