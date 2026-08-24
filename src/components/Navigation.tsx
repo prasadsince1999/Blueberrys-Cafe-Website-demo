@@ -34,12 +34,14 @@ export function Navigation() {
           <a 
             href="#" 
             onClick={(e) => handleNavClick(e, '#')}
-            className="flex items-center gap-1.5 md:gap-2 hover:opacity-90 transition-opacity"
+            className="flex items-center gap-2.5 md:gap-3 hover:opacity-90 transition-opacity group"
             aria-label="Blueberrys Café Home"
           >
-            <Logo className="h-10 md:h-12 w-auto" />
-            <span className="font-serif tracking-wide text-cafe-teal whitespace-nowrap text-xl sm:text-2xl md:text-3xl font-bold inline-block [text-shadow:-1.5px_1.5px_0px_var(--color-cafe-pink)]">
-              Blueberrys<span className="italic text-cafe-pink ml-[0.15em] [text-shadow:-1.5px_1.5px_0px_var(--color-cafe-teal)]">Café</span>
+            <div className="w-10 h-10 md:w-12 md:h-12 flex-shrink-0 drop-shadow-sm">
+              <Logo />
+            </div>
+            <span className="font-serif tracking-tight text-cafe-teal whitespace-nowrap text-xl sm:text-2xl md:text-[26px] font-bold inline-block drop-shadow-[0_1px_2px_rgba(255,255,255,0.8)]">
+              Blueberrys <span className="font-serif font-bold text-cafe-teal">Café</span>
             </span>
           </a>
         </div>

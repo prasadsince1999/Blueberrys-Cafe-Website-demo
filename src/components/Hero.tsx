@@ -23,7 +23,7 @@ export function Hero() {
     offset: ["start start", "end start"]
   });
 
-  // Smooth audio fade controller
+  // Smooth audio fade controller with mobile-safe autoplay fallback
   const setAudioState = (enable: boolean, smooth = true) => {
     const video = videoRef.current;
     if (!video) return;
@@ -36,7 +36,8 @@ export function Hero() {
     if (enable) {
       video.muted = false;
       if (smooth) {
-        let vol = video.volume || 0.1;
+        let vol = 0.1;
+        video.volume = vol;
         fadeIntervalRef.current = window.setInterval(() => {
           vol = Math.min(0.55, vol + 0.1);
           if (video) video.volume = vol;
@@ -44,12 +45,26 @@ export function Hero() {
             if (fadeIntervalRef.current) clearInterval(fadeIntervalRef.current);
             fadeIntervalRef.current = null;
           }
-        }, 35);
+        }, 40);
       } else {
         video.volume = 0.55;
       }
-      video.play().catch(() => {});
-      setIsPlayingSound(true);
+
+      const playPromise = video.play();
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => {
+            setIsPlayingSound(true);
+          })
+          .catch(() => {
+            // If browser policy blocks sound before user gesture, keep video playing smoothly
+            if (video) {
+              video.muted = true;
+              video.play().catch(() => {});
+            }
+            setIsPlayingSound(false);
+          });
+      }
     } else {
       if (smooth) {
         let vol = video.volume;
@@ -61,7 +76,7 @@ export function Hero() {
             if (fadeIntervalRef.current) clearInterval(fadeIntervalRef.current);
             fadeIntervalRef.current = null;
           }
-        }, 35);
+        }, 40);
       } else {
         video.volume = 0;
         video.muted = true;
@@ -187,24 +202,12 @@ export function Hero() {
   };
 
   // Deep cinematic fly-through effect
-  const bgScale = useTransform(scrollYProgress, [0, 1], [1, 1.3]);
-  const bgOpacity = useTransform(scrollYProgress, [0, 1], [1, 0.4]);
+  const bgScale = useTransform(scrollYProgress, [0, 1], [1, 1.25]);
+  const bgOpacity = useTransform(scrollYProgress, [0, 1], [1, 0.35]);
   
-  const textY = useTransform(scrollYProgress, [0, 1], [0, 150]);
-  const textOpacity = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
-
-  // Reverted & enhanced dynamic glass arch frosting on scroll
-  const archBlur = useTransform(scrollYProgress, [0, 0.45], ["blur(0px)", "blur(24px)"]);
-  const archBg = useTransform(
-    scrollYProgress, 
-    [0, 0.45], 
-    ["rgba(255, 255, 255, 0.30)", "rgba(255, 255, 255, 0.88)"]
-  );
-  const archBorder = useTransform(
-    scrollYProgress,
-    [0, 0.45],
-    ["rgba(255, 255, 255, 0.40)", "rgba(255, 255, 255, 0.85)"]
-  );
+  // Solid & crisp at beginning (scroll 0), slowly gets transparent on scroll down (0 -> 0.45)
+  const textY = useTransform(scrollYProgress, [0, 0.5], [0, 80]);
+  const textOpacity = useTransform(scrollYProgress, [0, 0.45], [1, 0]);
 
   return (
     <section ref={containerRef} className="relative h-screen min-h-[700px] flex items-end justify-center overflow-hidden bg-cafe-ivory">
@@ -231,20 +234,16 @@ export function Hero() {
           <source src="/hero-cinematic-leaves.mp4" type="video/mp4" />
           Your browser does not support the video tag.
         </video>
-        <div className="absolute inset-0 bg-gradient-to-b from-cafe-ivory/50 via-transparent to-black/10" />
+        <div className="absolute inset-0 bg-gradient-to-b from-cafe-ivory/40 via-transparent to-black/10" />
       </motion.div>
 
-      {/* Main Content Area: Dynamic Glass Arch with progressive scroll blur */}
+      {/* Main Content Area: Architectural Solid Arch at start, slowly fades to transparent as user scrolls */}
       <motion.div 
-        className="relative z-20 text-center px-6 sm:px-10 md:px-12 pt-24 sm:pt-32 md:pt-40 lg:pt-44 pb-6 md:pb-8 w-[88vw] max-w-md sm:max-w-lg md:max-w-xl lg:max-w-[580px] mx-auto rounded-t-[160px] sm:rounded-t-[200px] md:rounded-t-[260px] rounded-b-none shadow-[0_-15px_50px_rgba(0,0,0,0.1)] border-t border-x flex flex-col justify-end"
+        className="relative z-20 text-center px-6 sm:px-10 md:px-12 pt-20 sm:pt-28 md:pt-36 lg:pt-40 pb-6 md:pb-8 w-[88vw] max-w-md sm:max-w-lg md:max-w-xl lg:max-w-[580px] mx-auto bg-white/95 backdrop-blur-xl rounded-t-[160px] sm:rounded-t-[200px] md:rounded-t-[260px] rounded-b-none shadow-[0_-15px_50px_rgba(0,0,0,0.12)] border-t border-x border-white/90 flex flex-col justify-end"
         style={{ 
           opacity: textOpacity, 
           y: textY,
-          backdropFilter: archBlur,
-          WebkitBackdropFilter: archBlur,
-          backgroundColor: archBg,
-          borderColor: archBorder,
-          willChange: 'transform, opacity, backdrop-filter'
+          willChange: 'transform, opacity'
         }}
       >
         <motion.div
@@ -252,14 +251,14 @@ export function Hero() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
         >
-          <h1 className="font-serif text-4xl sm:text-5xl md:text-6xl text-cafe-teal mb-3 leading-[1.05] tracking-tight">
+          <h1 className="font-serif text-4xl sm:text-5xl md:text-6xl text-cafe-teal mb-3 leading-[1.05] tracking-tight font-bold">
             Where Every <br/>
-            <span className="italic text-cafe-pink font-light tracking-normal text-2xl sm:text-3xl md:text-4xl block mt-1 md:mt-2">Moment Blooms.</span>
+            <span className="italic text-cafe-blossom font-normal tracking-normal text-2xl sm:text-3xl md:text-4xl block mt-1 md:mt-2">Moment Blooms.</span>
           </h1>
         </motion.div>
 
         <motion.p 
-          className="text-cafe-text/80 text-sm sm:text-base md:text-lg font-light max-w-md mx-auto mb-6 md:mb-8 leading-relaxed"
+          className="text-cafe-text/90 text-sm sm:text-base md:text-lg font-medium max-w-md mx-auto mb-6 md:mb-8 leading-relaxed"
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1.2, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
@@ -276,7 +275,7 @@ export function Hero() {
           <a 
             href="#our-cafe" 
             onClick={(e) => handleNavClick(e, '#our-cafe')}
-            className="px-8 py-3.5 bg-cafe-teal text-cafe-ivory uppercase tracking-[0.18em] text-xs font-medium hover:bg-cafe-text transition-colors w-full sm:w-auto relative overflow-hidden group shadow-sm"
+            className="px-8 py-3.5 bg-cafe-teal text-cafe-ivory uppercase tracking-[0.18em] text-xs font-semibold hover:bg-cafe-text transition-colors w-full sm:w-auto relative overflow-hidden group shadow-md"
           >
             <span className="relative z-10">Explore the Café</span>
             <div className="absolute inset-0 bg-cafe-text transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-500" />
@@ -284,7 +283,7 @@ export function Hero() {
           <a 
             href="#menu" 
             onClick={(e) => handleNavClick(e, '#menu')}
-            className="px-8 py-3.5 border border-cafe-teal/30 text-cafe-teal uppercase tracking-[0.18em] text-xs font-medium hover:border-cafe-teal transition-all w-full sm:w-auto relative group overflow-hidden"
+            className="px-8 py-3.5 border-2 border-cafe-teal/30 bg-white/80 text-cafe-teal uppercase tracking-[0.18em] text-xs font-semibold hover:border-cafe-teal hover:bg-cafe-teal hover:text-white transition-all w-full sm:w-auto relative group overflow-hidden shadow-sm"
           >
             <span className="relative z-10 group-hover:text-cafe-ivory transition-colors duration-500">View Menu</span>
             <div className="absolute inset-0 bg-cafe-teal transform scale-y-0 group-hover:scale-y-100 transition-transform origin-bottom duration-500" />
