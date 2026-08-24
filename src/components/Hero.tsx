@@ -8,8 +8,10 @@ export function Hero() {
   const containerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const { navigateTo } = useTransition();
-  const [isMuted, setIsMuted] = useState(false);
-  const hasInteractedRef = useRef(false);
+  const [isPlayingSound, setIsPlayingSound] = useState(false);
+  const userWantsAudioRef = useRef(true);
+  const isScrolledOutRef = useRef(false);
+  const fadeIntervalRef = useRef<number | null>(null);
 
   const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
     e.preventDefault();
@@ -21,12 +23,59 @@ export function Hero() {
     offset: ["start start", "end start"]
   });
 
-  // Attempt unmuted playback on load & register interaction listeners for browser unlock
+  // Smooth audio fade controller
+  const setAudioState = (enable: boolean, smooth = true) => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    if (fadeIntervalRef.current) {
+      clearInterval(fadeIntervalRef.current);
+      fadeIntervalRef.current = null;
+    }
+
+    if (enable) {
+      video.muted = false;
+      if (smooth) {
+        let vol = video.volume || 0.1;
+        fadeIntervalRef.current = window.setInterval(() => {
+          vol = Math.min(0.55, vol + 0.1);
+          if (video) video.volume = vol;
+          if (vol >= 0.55) {
+            if (fadeIntervalRef.current) clearInterval(fadeIntervalRef.current);
+            fadeIntervalRef.current = null;
+          }
+        }, 35);
+      } else {
+        video.volume = 0.55;
+      }
+      video.play().catch(() => {});
+      setIsPlayingSound(true);
+    } else {
+      if (smooth) {
+        let vol = video.volume;
+        fadeIntervalRef.current = window.setInterval(() => {
+          vol = Math.max(0, vol - 0.1);
+          if (video) video.volume = vol;
+          if (vol <= 0) {
+            if (video) video.muted = true;
+            if (fadeIntervalRef.current) clearInterval(fadeIntervalRef.current);
+            fadeIntervalRef.current = null;
+          }
+        }, 35);
+      } else {
+        video.volume = 0;
+        video.muted = true;
+      }
+      setIsPlayingSound(false);
+    }
+  };
+
+  // Attempt unmuted playback on load & register one-time interaction listeners
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
 
-    video.volume = 0.5;
+    video.volume = 0.55;
 
     // Try unmuted autoplay directly
     video.muted = false;
@@ -34,96 +83,84 @@ export function Hero() {
     if (playPromise !== undefined) {
       playPromise
         .then(() => {
-          // Unmuted autoplay succeeded
-          hasInteractedRef.current = true;
-          setIsMuted(false);
+          setIsPlayingSound(true);
         })
         .catch(() => {
-          // Browser blocked unmuted autoplay: play muted first so visuals start immediately
+          // Autoplay blocked by browser policy: start muted and unlock on first touch/click
           video.muted = true;
-          setIsMuted(true);
+          setIsPlayingSound(false);
           video.play().catch(() => {});
         });
     }
 
-    // Global listener to unlock audio on the very first user interaction
-    const unlockAudio = () => {
-      hasInteractedRef.current = true;
+    // Global listener to unlock audio on first interaction
+    const unlockOnFirstTouch = () => {
       const currentScroll = window.scrollY || document.documentElement.scrollTop || 0;
-      if (video && currentScroll < 60) {
-        video.muted = false;
-        video.volume = 0.5;
-        setIsMuted(false);
-        video.play().catch(() => {});
+      if (userWantsAudioRef.current && currentScroll < 100) {
+        setAudioState(true, true);
       }
       removeUnlockListeners();
     };
 
     const removeUnlockListeners = () => {
-      window.removeEventListener('pointerdown', unlockAudio);
-      window.removeEventListener('touchstart', unlockAudio);
-      window.removeEventListener('click', unlockAudio);
-      window.removeEventListener('keydown', unlockAudio);
-      window.removeEventListener('wheel', unlockAudio);
+      window.removeEventListener('pointerdown', unlockOnFirstTouch);
+      window.removeEventListener('touchstart', unlockOnFirstTouch);
+      window.removeEventListener('click', unlockOnFirstTouch);
+      window.removeEventListener('keydown', unlockOnFirstTouch);
     };
 
-    window.addEventListener('pointerdown', unlockAudio, { passive: true });
-    window.addEventListener('touchstart', unlockAudio, { passive: true });
-    window.addEventListener('click', unlockAudio, { passive: true });
-    window.addEventListener('keydown', unlockAudio, { passive: true });
-    window.addEventListener('wheel', unlockAudio, { passive: true });
+    window.addEventListener('pointerdown', unlockOnFirstTouch, { passive: true });
+    window.addEventListener('touchstart', unlockOnFirstTouch, { passive: true });
+    window.addEventListener('click', unlockOnFirstTouch, { passive: true });
+    window.addEventListener('keydown', unlockOnFirstTouch, { passive: true });
 
     return () => {
       removeUnlockListeners();
+      if (fadeIntervalRef.current) clearInterval(fadeIntervalRef.current);
     };
   }, []);
 
-  // Real-time smooth scroll handler via Lenis & fallback scroll event
+  // Smooth scroll listener with hysteresis (fade out at >140px, fade in at <70px)
   useLenis(({ scroll }) => {
     const video = videoRef.current;
     if (!video) return;
 
-    // Auto-mute when user scrolls down past 50px
-    if (scroll > 50) {
-      if (!video.muted) {
-        video.muted = true;
-        setIsMuted(true);
+    // Scroll Down Threshold
+    if (scroll > 140 && !isScrolledOutRef.current) {
+      isScrolledOutRef.current = true;
+      if (userWantsAudioRef.current) {
+        setAudioState(false, true);
       }
-    } else {
-      // Auto-unmute when scrolled back to the top (if audio has been enabled/interacted)
-      if (video.muted && hasInteractedRef.current) {
-        video.muted = false;
-        video.volume = 0.5;
-        setIsMuted(false);
-        video.play().catch(() => {});
+    } 
+    // Scroll Back to Top Threshold
+    else if (scroll < 70 && isScrolledOutRef.current) {
+      isScrolledOutRef.current = false;
+      if (userWantsAudioRef.current) {
+        setAudioState(true, true);
       }
     }
 
-    // Pause video playback when far below the hero section to save resources
-    if (scroll > window.innerHeight * 0.9) {
-      if (!video.paused) {
-        video.pause();
-      }
+    // Pause video when completely offscreen to preserve battery/GPU
+    if (scroll > window.innerHeight * 1.1) {
+      if (!video.paused) video.pause();
     } else {
-      if (video.paused) {
-        video.play().catch(() => {});
-      }
+      if (video.paused) video.play().catch(() => {});
     }
   });
 
-  const toggleSound = () => {
-    const video = videoRef.current;
-    if (!video) return;
+  const toggleSound = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
 
-    hasInteractedRef.current = true;
-    if (video.muted || isMuted) {
-      video.muted = false;
-      video.volume = 0.5;
-      video.play().catch(() => {});
-      setIsMuted(false);
+    if (isPlayingSound) {
+      // User explicitly wants Mute
+      userWantsAudioRef.current = false;
+      setAudioState(false, false);
     } else {
-      video.muted = true;
-      setIsMuted(true);
+      // User explicitly wants Sound
+      userWantsAudioRef.current = true;
+      isScrolledOutRef.current = false;
+      setAudioState(true, true);
     }
   };
 
@@ -233,13 +270,28 @@ export function Hero() {
         </motion.div>
       </motion.div>
 
-      {/* Sound Toggle Button */}
+      {/* Premium Sound Toggle Button */}
       <button 
         onClick={toggleSound}
-        className="absolute bottom-8 right-8 z-30 p-3 bg-white/40 backdrop-blur-md rounded-full border border-white/60 text-cafe-teal hover:bg-white/70 transition-all shadow-lg active:scale-95"
-        aria-label={isMuted ? "Unmute ambient audio" : "Mute ambient audio"}
+        type="button"
+        className="fixed bottom-6 right-6 sm:bottom-8 sm:right-8 z-40 flex items-center gap-2 px-3.5 py-2.5 bg-white/70 hover:bg-white/90 backdrop-blur-md rounded-full border border-white/80 text-cafe-teal shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all duration-300 active:scale-95 group cursor-pointer"
+        aria-label={isPlayingSound ? "Mute ambient café sounds" : "Play ambient café sounds"}
       >
-        {isMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
+        <div className="relative flex items-center justify-center w-5 h-5">
+          {isPlayingSound ? (
+            <div className="flex items-center gap-[2.5px] h-3.5">
+              <span className="w-[2.5px] h-full bg-cafe-teal rounded-full animate-[pulse_0.8s_ease-in-out_infinite]" />
+              <span className="w-[2.5px] h-2 bg-cafe-teal rounded-full animate-[pulse_1.1s_ease-in-out_infinite]" />
+              <span className="w-[2.5px] h-3.5 bg-cafe-teal rounded-full animate-[pulse_0.6s_ease-in-out_infinite]" />
+              <span className="w-[2.5px] h-1.5 bg-cafe-teal rounded-full animate-[pulse_0.9s_ease-in-out_infinite]" />
+            </div>
+          ) : (
+            <VolumeX size={18} className="text-cafe-teal/70 group-hover:text-cafe-teal transition-colors" />
+          )}
+        </div>
+        <span className="text-[11px] font-medium tracking-wider uppercase text-cafe-teal/90 pr-1 select-none">
+          {isPlayingSound ? "Sound On" : "Sound Off"}
+        </span>
       </button>
     </section>
   );
