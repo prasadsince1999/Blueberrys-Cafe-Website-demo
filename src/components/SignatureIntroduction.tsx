@@ -88,9 +88,9 @@ export function SignatureIntroduction() {
                 className="w-full h-auto rounded-sm shadow-2xl shadow-cafe-teal/10"
               />
               
-              {/* Overlapping small detail image */}
+              {/* Overlapping small detail image - visible across all screen sizes */}
               <motion.div 
-                className="absolute -bottom-8 -left-8 md:-bottom-12 md:-left-12 w-1/3 aspect-square hidden md:flex items-center justify-center z-20 pointer-events-none drop-shadow-[0_20px_25px_rgba(0,0,0,0.35)]"
+                className="absolute -bottom-6 -left-3 sm:-bottom-8 sm:-left-6 md:-bottom-12 md:-left-12 w-[36%] sm:w-[32%] md:w-1/3 aspect-square flex items-center justify-center z-20 pointer-events-none drop-shadow-[0_15px_25px_rgba(0,0,0,0.35)]"
                 initial={{ opacity: 0, scale: 0.8 }}
                 whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true, margin: "-50px" }}
