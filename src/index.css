@@ -1,4 +1,5 @@
 @import "tailwindcss";
+/* Build version: 2026-08-25 */
 
 @theme {
   --color-cafe-blue: #75C9D0;
@@ -22,13 +23,14 @@
     font-family: var(--font-sans);
     color: var(--color-cafe-text);
     background-color: var(--color-cafe-ivory);
-    overflow-x: hidden;
+    overflow-x: clip;
     touch-action: manipulation;
     -webkit-overflow-scrolling: touch;
   }
 
   body {
-    @apply m-0 p-0 overflow-x-hidden;
+    @apply m-0 p-0;
+    overflow-x: clip;
     touch-action: pan-y pinch-zoom;
     -webkit-overflow-scrolling: touch;
   }
@@ -55,6 +57,10 @@
   
   .clip-path-inset-100 {
     clip-path: inset(0 0 100% 0);
+  }
+  
+  .blueberrys-v3 {
+    opacity: 1;
   }
 }
 

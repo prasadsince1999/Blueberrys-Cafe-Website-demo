@@ -13,24 +13,12 @@ export function CinematicSection({ children, className, id }: CinematicSectionPr
   
   const { scrollYProgress } = useScroll({
     target: containerRef,
-    offset: ["start end", "center center"]
+    offset: ["start end", "end start"]
   });
 
-  const { scrollYProgress: scrollOutProgress } = useScroll({
-    target: containerRef,
-    offset: ["center center", "end start"]
-  });
-
-  // Fade in and unblur as it enters, fade out and blur as it leaves
-  const opacityIn = useTransform(scrollYProgress, [0, 0.4], [0.3, 1]);
-  const blurIn = useTransform(scrollYProgress, [0, 0.4], [10, 0]);
-  
-  const opacityOut = useTransform(scrollOutProgress, [0.6, 1], [1, 0.3]);
-  const blurOut = useTransform(scrollOutProgress, [0.6, 1], [0, 10]);
-
-  // Combine transforms
-  const opacity = useTransform(() => Math.min(opacityIn.get(), opacityOut.get()));
-  const blur = useTransform(() => Math.max(blurIn.get(), blurOut.get()));
+  // Soft, natural entry and exit without locking the screen in heavy blur
+  const opacity = useTransform(scrollYProgress, [0, 0.15, 0.85, 1], [0.85, 1, 1, 0.85]);
+  const blur = useTransform(scrollYProgress, [0, 0.15, 0.85, 1], [2, 0, 0, 2]);
 
   return (
     <motion.section

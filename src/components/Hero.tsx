@@ -233,8 +233,8 @@ export function Hero() {
           preload="auto"
           className="w-full h-full object-cover"
         >
-          <source src="/hero-cinematic-leaves.webm" type="video/webm" />
           <source src="/hero-cinematic-leaves.mp4" type="video/mp4" />
+          <source src="/hero-cinematic-leaves.webm" type="video/webm" />
           Your browser does not support the video tag.
         </video>
         <div className="absolute inset-0 bg-gradient-to-b from-cafe-ivory/40 via-transparent to-black/10" />
