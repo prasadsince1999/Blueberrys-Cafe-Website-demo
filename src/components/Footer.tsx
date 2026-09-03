@@ -67,15 +67,14 @@ export function Footer() {
           <div>
             <h3 className="uppercase tracking-widest text-xs font-semibold text-cafe-teal mb-6">Visit</h3>
             <ul className="space-y-3 text-sm text-cafe-text/80 font-light">
-              <li>123 Floral Avenue</li>
-              <li>Garden District</li>
-              <li>Bhubaneswar, Odisha 751024</li>
+              <li>Demo Street</li>
+              <li>Sample City</li>
+              <li>State 000000</li>
               <li className="pt-2">
                 <a 
-                  href="https://maps.google.com/?q=Blueberrys+Cafe+Bhubaneswar" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="text-cafe-blossom font-medium hover:text-cafe-teal transition-colors"
+                  href="#" 
+                  onClick={(e) => e.preventDefault()}
+                  className="text-cafe-blossom font-medium hover:text-cafe-teal transition-colors cursor-pointer"
                 >
                   Get Directions
                 </a>
@@ -86,8 +85,8 @@ export function Footer() {
           <div>
             <h3 className="uppercase tracking-widest text-xs font-semibold text-cafe-teal mb-6">Contact</h3>
             <ul className="space-y-3 text-sm text-cafe-text/80 font-light">
-              <li>+91 98765 43210</li>
-              <li>hello@blueberryscafe.com</li>
+              <li>+00 000 000 0000</li>
+              <li>hello@demo.example</li>
               <li className="pt-2">
                 <a 
                   href="#reserve" 
@@ -111,8 +110,14 @@ export function Footer() {
 
         </div>
 
-        <div className="mt-24 text-center md:text-left flex flex-col md:flex-row justify-between items-center text-xs text-cafe-text/75 font-normal uppercase tracking-wider">
-          <p>&copy; {new Date().getFullYear()} Blueberrys Café. All rights reserved.</p>
+        <div className="mt-16 pt-8 border-t border-cafe-teal/10 text-center text-xs text-cafe-text/60 font-light leading-relaxed">
+          <p>
+            Disclaimer: Design &amp; AI experiment — demo build, not an official site. All assets and imagery are publicly available. Built with Google AI Studio + Antigravity.
+          </p>
+        </div>
+
+        <div className="mt-8 text-center md:text-left flex flex-col md:flex-row justify-between items-center text-xs text-cafe-text/75 font-normal uppercase tracking-wider">
+          <p>&copy; {new Date().getFullYear()} Blueberrys Café. Demo Project.</p>
           <div className="flex gap-6 mt-4 md:mt-0">
             <a href="#privacy" className="hover:text-cafe-teal transition-colors">Privacy Policy</a>
             <a href="#terms" className="hover:text-cafe-teal transition-colors">Terms of Service</a>

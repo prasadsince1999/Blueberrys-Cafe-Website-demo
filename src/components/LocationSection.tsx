@@ -44,14 +44,13 @@ export function LocationSection() {
                   <div>
                     <h3 className="uppercase tracking-widest text-sm font-medium text-cafe-teal mb-2">Location</h3>
                     <p className="text-cafe-text/80 font-light leading-relaxed">
-                      123 Floral Avenue, Garden District<br/>
-                      City Name, State 12345
+                      Demo Street, Sample City<br/>
+                      State 000000
                     </p>
                     <a 
-                      href="https://maps.google.com/?q=Blueberrys+Cafe+Bhubaneswar" 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center text-sm font-medium text-cafe-blossom mt-2 hover:text-cafe-teal transition-colors"
+                      href="#" 
+                      onClick={(e) => e.preventDefault()}
+                      className="inline-flex items-center text-sm font-medium text-cafe-blossom mt-2 hover:text-cafe-teal transition-colors cursor-pointer"
                     >
                       Get Directions <ArrowRight size={14} className="ml-1" />
                     </a>
@@ -74,8 +73,8 @@ export function LocationSection() {
                   <div>
                     <h3 className="uppercase tracking-widest text-sm font-medium text-cafe-teal mb-2">Contact</h3>
                     <p className="text-cafe-text/80 font-light leading-relaxed">
-                      +91 98765 43210<br/>
-                      hello@blueberryscafe.com
+                      +00 000 000 0000<br/>
+                      hello@demo.example
                     </p>
                   </div>
                 </div>
@@ -83,10 +82,9 @@ export function LocationSection() {
 
               <div className="flex flex-col sm:flex-row gap-4" id="order">
                 <a 
-                  href="https://www.swiggy.com" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="px-8 py-4 bg-cafe-teal text-cafe-ivory uppercase tracking-[0.15em] text-sm font-medium hover:bg-cafe-text transition-colors text-center w-full sm:w-auto"
+                  href="#order" 
+                  onClick={(e) => e.preventDefault()}
+                  className="px-8 py-4 bg-cafe-teal text-cafe-ivory uppercase tracking-[0.15em] text-sm font-medium hover:bg-cafe-text transition-colors text-center w-full sm:w-auto cursor-pointer select-none"
                 >
                   Order on Swiggy
                 </a>

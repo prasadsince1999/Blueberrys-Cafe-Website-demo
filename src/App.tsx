@@ -18,6 +18,7 @@ import { AtmosphericParticles } from './components/AtmosphericParticles';
 import { CinematicSection } from './components/CinematicSection';
 import { TransitionProvider } from './context/TransitionContext';
 import { Preloader } from './components/Preloader';
+import { TopMarquee } from './components/TopMarquee';
 
 export default function App() {
   return (
@@ -28,6 +29,7 @@ export default function App() {
           <Preloader />
           <CustomCursor />
           <AtmosphericParticles />
+          <TopMarquee />
           <Navigation />
           
           <main>

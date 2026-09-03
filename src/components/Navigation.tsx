@@ -23,7 +23,7 @@ export function Navigation() {
   return (
     <header
       className={cn(
-        'fixed top-0 left-0 right-0 z-50 transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]',
+        'fixed top-9 left-0 right-0 z-40 transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]',
         isScrolled ? 'bg-cafe-cream/90 backdrop-blur-md shadow-sm py-3 md:py-4' : 'bg-transparent py-6 md:py-8'
       )}
     >
